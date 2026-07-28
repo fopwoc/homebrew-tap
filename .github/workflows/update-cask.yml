@@ -1,0 +1,55 @@
+name: Update cask
+
+on:
+  repository_dispatch:
+    types:
+      - update-cask
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-casks
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out tap
+        uses: actions/checkout@v5
+
+      - name: Generate cask
+        env:
+          CASK_TOKEN: ${{ github.event.client_payload.cask_token }}
+          CASK_VERSION: ${{ github.event.client_payload.version }}
+          CASK_SHA256: ${{ github.event.client_payload.sha256 }}
+          CASK_URL: ${{ github.event.client_payload.url }}
+          CASK_NAME: ${{ github.event.client_payload.name }}
+          CASK_DESC: ${{ github.event.client_payload.description }}
+          CASK_HOMEPAGE: ${{ github.event.client_payload.homepage }}
+          CASK_APP: ${{ github.event.client_payload.app }}
+        run: ruby scripts/update_cask.rb
+
+      - name: Check generated cask
+        env:
+          CASK_TOKEN: ${{ github.event.client_payload.cask_token }}
+        run: ruby -c "Casks/${CASK_TOKEN}.rb"
+
+      - name: Commit cask
+        env:
+          CASK_TOKEN: ${{ github.event.client_payload.cask_token }}
+          CASK_VERSION: ${{ github.event.client_payload.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "Casks/${CASK_TOKEN}.rb"
+
+          if git diff --cached --quiet; then
+            echo "Cask is already up to date."
+            exit 0
+          fi
+
+          git commit -m "Update ${CASK_TOKEN} to ${CASK_VERSION}"
+          git push
