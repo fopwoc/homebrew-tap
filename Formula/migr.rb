@@ -1,9 +1,9 @@
 class Migr < Formula
   desc "Carry Minecraft configs between Prism instances with git"
   homepage "https://github.com/fopwoc/migr"
-  url "https://github.com/fopwoc/migr/releases/download/0.1.0/migr-0.1.0-macos.tar.gz"
-  version "0.1.0"
-  sha256 "60d92dcbde2438e678dfe3fec5855c302a0e2cacde0b220395b26466d1108e87"
+  url "https://github.com/fopwoc/migr/releases/download/0.2.0/migr-0.2.0-macos.tar.gz"
+  version "0.2.0"
+  sha256 "064c40f908a5693252b6f0ab74399c182c9749eee965005b99cfa51b7af495b6"
 
   depends_on arch: :arm64
   depends_on :macos
