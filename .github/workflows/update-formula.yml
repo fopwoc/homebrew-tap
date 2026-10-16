@@ -1,0 +1,54 @@
+name: Update formula
+
+on:
+  repository_dispatch:
+    types:
+      - update-formula
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-casks
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out tap
+        uses: actions/checkout@v5
+
+      - name: Generate formula
+        env:
+          FORMULA_NAME: ${{ github.event.client_payload.formula_name }}
+          FORMULA_VERSION: ${{ github.event.client_payload.version }}
+          FORMULA_SHA256: ${{ github.event.client_payload.sha256 }}
+          FORMULA_URL: ${{ github.event.client_payload.url }}
+          FORMULA_DESC: ${{ github.event.client_payload.description }}
+          FORMULA_HOMEPAGE: ${{ github.event.client_payload.homepage }}
+          FORMULA_BINARY: ${{ github.event.client_payload.binary }}
+        run: ruby scripts/update_formula.rb
+
+      - name: Check generated formula
+        env:
+          FORMULA_NAME: ${{ github.event.client_payload.formula_name }}
+        run: ruby -c "Formula/${FORMULA_NAME}.rb"
+
+      - name: Commit formula
+        env:
+          FORMULA_NAME: ${{ github.event.client_payload.formula_name }}
+          FORMULA_VERSION: ${{ github.event.client_payload.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "Formula/${FORMULA_NAME}.rb"
+
+          if git diff --cached --quiet; then
+            echo "Formula is already up to date."
+            exit 0
+          fi
+
+          git commit -m "Update ${FORMULA_NAME} to ${FORMULA_VERSION}"
+          git push

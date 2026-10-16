@@ -9,3 +9,10 @@ brew tap fopwoc/tap
 brew install --cask f2t
 ```
 
+
+Install [migr](https://github.com/fopwoc/migr):
+
+```sh
+brew tap fopwoc/tap
+brew install migr
+```
